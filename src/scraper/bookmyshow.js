@@ -5,7 +5,7 @@ puppeteer.use(StealthPlugin());
 
 async function scrapeBookMyShow(city) {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
@@ -17,23 +17,45 @@ async function scrapeBookMyShow(city) {
       { waitUntil: "networkidle2" }
     );
 
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    await new Promise(r => setTimeout(r, 4000));
 
-    const events = await page.evaluate((cityName) => {
-      const cards = document.querySelectorAll('a[href*="/events/"]');
+    const eventLinks = await page.evaluate(() => {
+      const links = document.querySelectorAll('a[href*="/events/"]');
+      return Array.from(links)
+        .map(a => a.href)
+        .filter((v, i, arr) => arr.indexOf(v) === i)
+        .slice(0, 10); // limit for performance
+    });
 
-      return Array.from(cards)
-        .slice(0, 20)
-        .map(card => ({
-          name: card.innerText.trim() || "Event",
-          date: "",
-          venue: "",
-          city: cityName,
-          category: "General",
-          url: card.href,
-          status: "Active"
-        }));
-    }, city);
+    const events = [];
+
+    for (const url of eventLinks) {
+      const eventPage = await browser.newPage();
+      await eventPage.goto(url, { waitUntil: "networkidle2" });
+      await new Promise(r => setTimeout(r, 2000));
+
+      const eventData = await eventPage.evaluate(() => {
+
+        const getText = (selector) =>
+          document.querySelector(selector)?.innerText.trim() || "";
+
+        return {
+          name: getText("h1"),
+          date: getText("[class*='date']"),
+          venue: getText("[class*='venue']"),
+          category: getText("[class*='category']"),
+        };
+      });
+
+      events.push({
+        ...eventData,
+        city: city,
+        url: url,
+        status: "Active"
+      });
+
+      await eventPage.close();
+    }
 
     return events;
 

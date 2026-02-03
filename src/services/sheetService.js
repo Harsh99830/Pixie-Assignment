@@ -60,6 +60,16 @@ async function updateEventStatus(rowNumber, status) {
   });
 }
 
+async function updateRow(rowNumber, values) {
+  const sheets = await getSheetsInstance();
 
-module.exports = { getExistingEvents, appendEvents, updateEventStatus };
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: process.env.SPREADSHEET_ID,
+    range: `Sheet1!A${rowNumber}:H${rowNumber}`,
+    valueInputOption: "RAW",
+    requestBody: { values: [values] }
+  });
+}
+
+module.exports = { getExistingEvents, appendEvents, updateEventStatus, updateRow };
 
