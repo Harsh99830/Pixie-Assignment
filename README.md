@@ -28,23 +28,6 @@ The purpose of this project is to avoid manual tracking of events. It fetches ev
 
 ---
 
-## Project Structure
-
-pixieBooth/
-│
-├── src/
-│   ├── scraper/
-│   ├── services/
-│   ├── scheduler/
-│   └── index.js
-│
-├── service-account.json
-├── app.js
-├── .env
-└── package.json
-
----
-
 ## Setup Instructions
 
 ### 1. Install Dependencies
@@ -111,7 +94,7 @@ node app.js
 
 ---
 
-## 🧠 How It Works
+## How It Works
 
 - Each event URL is treated as a unique identifier.
 - If an event already exists → the row is updated.
